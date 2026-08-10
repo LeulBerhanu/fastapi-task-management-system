@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.db.session import engine
+from app.api.router import api_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -17,3 +18,5 @@ async def lifespan(_: FastAPI):
     print("DB connection closed")
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(api_router, prefix="/api")
