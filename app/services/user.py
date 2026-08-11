@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlmodel import Session, select
 from app.core.exceptions import BadRequestError, NotFoundError
 from app.core.security import hash_password
@@ -28,3 +29,12 @@ def get_user_by_email(session: Session, email: str) -> UserRead:
     if user is None:
         raise NotFoundError("User not found")
     return UserRead.model_validate(user, from_attributes=True)
+
+
+def delete_user(session: Session, user_id: UUID) -> None:
+    repo = UserRepository(session)
+    
+    if repo.delete(user_id):
+        return None
+    else:
+        raise NotFoundError("User not found")
