@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-
+from uuid import UUID
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
 
@@ -15,12 +15,12 @@ def verify_password(plain: str, hashed: str) -> bool:
     return password_hash.verify(plain, hashed)
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: UUID) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     return jwt.encode(
-        {"sub": subject, "exp": expire},
+        {"sub": str(subject), "exp": expire},
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
