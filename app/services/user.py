@@ -13,7 +13,11 @@ def create_user(session: Session, data: UserCreate) -> User:
         raise BadRequestError("Invalid Email or Password")
 
     user = User(email=data.email, hashed_password=hash_password(data.password))
-    return repo.create(user)
+    user = repo.create(user)
+
+    session.commit()
+    session.refresh(user)
+    return user
     
 
 
@@ -33,6 +37,7 @@ def delete_user(session: Session, user_id: UUID) -> None:
     repo = UserRepository(session)
     
     if repo.delete(user_id):
+        session.commit()
         return None
     else:
         raise NotFoundError("User not found")
