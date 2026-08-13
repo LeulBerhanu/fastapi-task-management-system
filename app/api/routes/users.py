@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlmodel import Session
 from app.db.session import get_session
-from app.schemas.user import UserCreate, UserCreateResponse, UserRead
+from app.schemas.user import UserCreate, UserRead
 from app.services.user import create_user, delete_user, get_users
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
@@ -14,7 +14,7 @@ def send_welcome_email(email: str) -> None:
 
 @router.post(
     "/",
-    response_model=UserCreateResponse,
+    response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
 )
 def register(
