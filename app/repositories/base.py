@@ -12,22 +12,22 @@ class BaseRepository(Generic[ModelT]):
     def list(self) -> list[ModelT]:
         return self.session.exec(select(self.model)).all()
 
-    def get(self, id: UUID) -> ModelT | None:
+    def get_by_id(self, id: UUID) -> ModelT | None:
         return self.session.exec(
             select(self.model).where(self.model.id == id)
         ).one_or_none()
     
     def create(self, obj: ModelT) -> ModelT:
         self.session.add(obj)
-        self.session.commit()
+        self.session.flush()
         self.session.refresh(obj)
         return obj
 
     def delete(self, id: UUID) -> bool:
-        obj = self.get(id)
+        obj = self.get_by_id(id)
         if obj is None:
             return False
         self.session.delete(obj)
-        self.session.commit()
+        self.session.flush()
         return True
     
