@@ -18,3 +18,7 @@ class ConflictError(AppError):
 class BadRequestError(AppError):
     def __init__(self, message: str = "Bad request", status_code: int = 400) -> None:
         super().__init__(message, status_code)
+
+class UnauthorizedError(AppError):
+    def __init__(self, message: str = "Unauthorized access", status_code: int = 401) -> None:
+        super().__init__(message, status_code)
