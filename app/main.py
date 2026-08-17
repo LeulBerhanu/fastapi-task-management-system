@@ -9,13 +9,13 @@ from app.api.exception_handlers import register_exception_handlers
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    with engine.connect() as conn:
-        conn.execute(text("SELECT 1"))
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
         print("DB connection established")
 
     yield
 
-    engine.dispose()
+    await engine.dispose()
     print("DB connection closed")
 
 app = FastAPI(lifespan=lifespan)
