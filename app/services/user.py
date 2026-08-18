@@ -6,38 +6,41 @@ from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate
 
-async def create_user(async_session: AsyncSession, data: UserCreate) -> User:
-    repo = UserRepository(async_session)
 
-    if await repo.get_by_email(data.email):
-        raise BadRequestError("Invalid Email or Password")
+class UserService:
+    def __init__(self, session: AsyncSession, repo: UserRepository):
+        self.session = session
+        self.repo = repo
 
-    user = User(email=data.email, hashed_password=await hash_password(data.password))
-    user = await repo.create(user)
+    async def create_user(self, data: UserCreate) -> User:
+        if await self.repo.get_by_email(data.email):
+            raise BadRequestError("Invalid Email or Password")
 
-    await async_session.commit()
-    await async_session.refresh(user)
-    return user
+        user = User(email=data.email, hashed_password=await hash_password(data.password))
+        user = await self.repo.create(user)
+
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
     
+    async def get_user_by_id(self, user_id: UUID) -> User | None:
+        user = await self.repo.get_by_id(user_id)
+        return user if user else None
 
 
-async def get_users(async_session: AsyncSession) -> list[User]:
-    repo = UserRepository(async_session)
-    users = await repo.list()
-    return users
+    async def get_users(self) -> list[User]:
+        users = await self.repo.list()
+        return users
 
 
-async def get_user_by_email(async_session: AsyncSession, email: str) -> User | None:
-    repo = UserRepository(async_session)
-    user = await repo.get_by_email(email)
-    return user if user else None
+    async def get_user_by_email(self, email: str) -> User | None:
+        user = await self.repo.get_by_email(email)
+        return user if user else None
 
 
-async def delete_user(async_session: AsyncSession, user_id: UUID) -> None:
-    repo = UserRepository(async_session)
-    
-    if await repo.delete(user_id):
-        await async_session.commit()
-        return None
-    else:
-        raise NotFoundError("User not found")
+    async def delete_user(self, user_id: UUID) -> None:
+        if await self.repo.delete(user_id):
+            await self.session.commit()
+            return None
+        else:
+            raise NotFoundError("User not found")

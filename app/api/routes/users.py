@@ -1,9 +1,7 @@
 from uuid import UUID
-from fastapi import APIRouter, BackgroundTasks, Depends, status
-from sqlmodel import Session
-from app.db.session import get_session
+from fastapi import APIRouter, BackgroundTasks, status
 from app.schemas.user import UserCreate, UserRead
-from app.services.user import create_user, delete_user, get_users
+from app.api.deps import UserServiceDep
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
@@ -17,12 +15,12 @@ def send_welcome_email(email: str) -> None:
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
 )
-def register(
+async def register(
     body: UserCreate,
     background_tasks: BackgroundTasks,
-    session: Session = Depends(get_session)
+    user_service: UserServiceDep
 ):
-    user = create_user(session, body)
+    user = await user_service.create_user(body)
     background_tasks.add_task(send_welcome_email, user.email)
     return user
 
@@ -31,18 +29,20 @@ def register(
     "/",
     response_model=list[UserRead],
 )
-def list(
-    session: Session = Depends(get_session)
+async def list(
+    user_service: UserServiceDep
 ):
-    return get_users(session)
+    users = await user_service.get_users()
+    return users
 
 
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete(
+async def delete(
     user_id: UUID,
-    session: Session = Depends(get_session)
+    user_service: UserServiceDep
 ):
-    return delete_user(session, user_id)
+    await user_service.delete_user(user_id)
+    return None
