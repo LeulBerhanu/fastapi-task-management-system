@@ -1,12 +1,11 @@
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session
+
 from app.core.exceptions import BadRequestError
 from app.core.security import create_access_token, verify_password
-from app.services.user import get_user_by_email
+from app.api.deps import UserServiceDep
 
 
-def login_user(session: Session, email: str, password: str) -> dict[str, str]:
-    user = get_user_by_email(session, email)
+async def login_user(email: str, password: str, user_service: UserServiceDep) -> dict[str, str]:
+    user = await user_service.get_user_by_email(email)
     
     if not user:
         raise BadRequestError("Invalid Email or Password")
