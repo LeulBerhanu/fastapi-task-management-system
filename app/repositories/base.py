@@ -1,33 +1,36 @@
 from typing import Type, TypeVar, Generic
 from uuid import UUID
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 ModelT = TypeVar('ModelT', bound=SQLModel)
 
 class BaseRepository(Generic[ModelT]):
-    def __init__(self, session: Session, model: Type[ModelT]):
-        self.session = session
+    def __init__(self, async_session: AsyncSession, model: Type[ModelT]):
+        self.async_session = async_session
         self.model = model
 
-    def list(self) -> list[ModelT]:
-        return self.session.exec(select(self.model)).all()
+    async def list(self) -> list[ModelT]:
+        response = await self.async_session.exec(select(self.model))
+        return response.all()
 
-    def get_by_id(self, id: UUID) -> ModelT | None:
-        return self.session.exec(
+    async def get_by_id(self, id: UUID) -> ModelT | None:
+        response = await self.async_session.exec(
             select(self.model).where(self.model.id == id)
-        ).one_or_none()
+        )
+        return response.one_or_none()
     
-    def create(self, obj: ModelT) -> ModelT:
-        self.session.add(obj)
-        self.session.flush()
-        self.session.refresh(obj)
+    async def create(self, obj: ModelT) -> ModelT:
+        self.async_session.add(obj)
+        await self.async_session.flush()
+        await self.async_session.refresh(obj)
         return obj
 
-    def delete(self, id: UUID) -> bool:
-        obj = self.get_by_id(id)
+    async def delete(self, id: UUID) -> bool:
+        obj = await self.get_by_id(id)
         if obj is None:
             return False
-        self.session.delete(obj)
-        self.session.flush()
+        await self.async_session.delete(obj)
+        await self.async_session.flush()
         return True
     

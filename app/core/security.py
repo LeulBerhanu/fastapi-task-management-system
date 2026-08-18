@@ -1,37 +1,44 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
-
 from app.core.config import settings
+from app.core.exceptions import UnauthorizedError
 
 password_hash = PasswordHash.recommended()
 
-def hash_password(password: str) -> str:
-    return password_hash.hash(password)
+async def hash_password(password: str) -> str:
+    hashed_password = await asyncio.to_thread(password_hash.hash, password)
+    return hashed_password
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return password_hash.verify(plain, hashed)
+async def verify_password(plain: str, hashed: str) -> bool:
+    verified = await asyncio.to_thread(password_hash.verify, plain, hashed)
+    return verified
 
 
 def create_access_token(subject: UUID) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    return jwt.encode(
+    access_token = jwt.encode(
         {"sub": str(subject), "exp": expire},
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
+    return access_token
 
 
-def decode_access_token(token: str) -> str | None:
+def decode_access_token(token: str) -> str:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        sub = payload.get("sub")
-        return str(sub) if sub is not None else None
     except JWTError:
-        return None
+        raise UnauthorizedError("Invalid token")
+        
+    sub = payload.get("sub")
+    if not sub:
+        raise UnauthorizedError("Invalid token")
+    return str(sub)

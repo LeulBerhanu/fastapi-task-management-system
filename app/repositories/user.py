@@ -1,13 +1,14 @@
-from typing import List
-from sqlmodel import Session, select
+
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.user import User
-from uuid import UUID
 
 from app.repositories.base import BaseRepository
 
 class UserRepository(BaseRepository[User]):
-    def __init__(self, session: Session):
-        super().__init__(session, User)
+    def __init__(self, async_session: AsyncSession):
+        super().__init__(async_session, User)
     
-    def get_by_email(self, email: str) -> User | None:
-        return self.session.exec(select(User).where(User.email == email)).one_or_none()
+    async def get_by_email(self, email: str) -> User | None:
+        response = await self.async_session.exec(select(User).where(User.email == email))
+        return response.one_or_none()
