@@ -25,7 +25,7 @@ def create_access_token(subject: UUID) -> str:
     access_token = jwt.encode(
         {"sub": str(subject), "exp": expire},
         settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM,
+        algorithm=settings.HASH_ALGORITHM,
     )
     return access_token
 
@@ -33,7 +33,7 @@ def create_access_token(subject: UUID) -> str:
 def decode_access_token(token: str) -> str:
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.HASH_ALGORITHM]
         )
     except JWTError:
         raise UnauthorizedError("Invalid token")
