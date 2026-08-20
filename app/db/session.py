@@ -8,9 +8,9 @@ from app.core.config import settings
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True
+    pool_size=settings.DATABASE_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_OVERFLOW,
+    pool_pre_ping=settings.DATABASE_POOL_PRE_PING
 )
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
