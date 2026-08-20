@@ -6,7 +6,7 @@ from app.db.session import get_async_session
 from app.schemas.auth import Token
 from app.services.auth import login_user
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 @router.post("/login", response_model=Token)
 def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: AsyncSession = Depends(get_async_session)):

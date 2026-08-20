@@ -3,7 +3,7 @@ from fastapi import APIRouter, BackgroundTasks, status
 from app.schemas.user import UserCreate, UserRead
 from app.api.deps import UserServiceDep
 
-router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/v1/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 
 def send_welcome_email(email: str) -> None:

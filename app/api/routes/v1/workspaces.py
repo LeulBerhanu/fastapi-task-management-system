@@ -3,7 +3,7 @@ from app.api.deps import CurrentUserDep, WorkspaceServiceDep
 from app.schemas.workspace import WorkspaceCreate, WorkspaceRead
 
 
-router = APIRouter(prefix="/workspaces", tags=["workspaces"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/v1/workspaces", tags=["workspaces"], responses={404: {"description": "Not found"}})
 
 @router.get("/", response_model=list[WorkspaceRead])
 async def list_workspaces(
