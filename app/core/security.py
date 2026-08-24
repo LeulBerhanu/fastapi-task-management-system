@@ -1,5 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
+import hashlib
+import secrets
 from uuid import UUID
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
@@ -24,7 +26,7 @@ def create_access_token(subject: UUID) -> str:
     )
     access_token = jwt.encode(
         {"sub": str(subject), "exp": expire},
-        settings.SECRET_KEY,
+        settings.JWT_SECRET_KEY,
         algorithm=settings.HASH_ALGORITHM,
     )
     return access_token
@@ -33,7 +35,7 @@ def create_access_token(subject: UUID) -> str:
 def decode_access_token(token: str) -> str:
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.HASH_ALGORITHM]
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.HASH_ALGORITHM]
         )
     except JWTError:
         raise UnauthorizedError("Invalid token")
@@ -42,3 +44,14 @@ def decode_access_token(token: str) -> str:
     if not sub:
         raise UnauthorizedError("Invalid token")
     return str(sub)
+
+
+def generate_refresh_token() -> tuple[str, str]:
+    raw = secrets.token_urlsafe(32)
+
+    hashed = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    
+    return raw, hashed
+
+def hash_refresh_token(raw: str) -> str:
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
