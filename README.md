@@ -15,5 +15,13 @@ uv run alembic upgrade head
 uv run fastapi dev
 ```
 
+For production, staging, or test, create `.env.production`, `.env.staging`, or `.env.test` (copy from `.env.example` and adjust values), then start with that file:
+
+```bash
+uv run --env-file .env.production fastapi dev
+uv run --env-file .env.staging fastapi dev
+uv run --env-file .env.test fastapi dev
+```
+
 API: http://127.0.0.1:8000  
 Docs: http://127.0.0.1:8000/docs
