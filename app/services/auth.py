@@ -1,13 +1,30 @@
 from datetime import datetime, timezone
 from app.core.exceptions import BadRequestError, UnauthorizedError
-from app.core.security import create_access_token, generate_refresh_token, hash_refresh_token, verify_password
+from app.core.security import create_access_token, generate_refresh_token, hash_password, hash_refresh_token, verify_password
 from app.db.uow import UnitOfWork
 from app.models.refresh_token import RefreshToken
+from app.models.user import User
+from app.schemas.user import UserCreate
 
 
 class AuthService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
+
+        
+    async def register_user(self, data: UserCreate) -> User:
+        if await self.uow.users.get_by_email(data.email):
+            raise BadRequestError("Invalid Email or Password")
+
+        user = User(
+            email=data.email, 
+            hashed_password=await hash_password(data.password)
+            )
+        user = await self.uow.users.create(user)
+
+        await self.uow.commit()
+        return user
+    
 
     async def login_user(self, email: str, password: str) -> dict[str, str]:
         user = await self.uow.users.get_by_email(email)

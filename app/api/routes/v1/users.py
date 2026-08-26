@@ -2,12 +2,9 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, status
 from app.schemas.user import UserCreate, UserRead
 from app.api.deps import UserServiceDep
+from app.core.email import send_welcome_email
 
 router = APIRouter(prefix="/v1/users", tags=["users"], responses={404: {"description": "Not found"}})
-
-
-def send_welcome_email(email: str) -> None:
-    print(f"Sending welcome email to {email}")
 
 
 @router.post(
@@ -15,7 +12,7 @@ def send_welcome_email(email: str) -> None:
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
 )
-async def register(
+async def create(
     body: UserCreate,
     background_tasks: BackgroundTasks,
     user_service: UserServiceDep
