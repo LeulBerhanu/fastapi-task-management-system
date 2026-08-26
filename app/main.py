@@ -21,8 +21,8 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    docs_url=None if settings.is_production else "/docs",
-    redoc_url=None if settings.is_production else "/redoc",
+    # docs_url=None if settings.is_production else "/docs",
+    # redoc_url=None if settings.is_production else "/redoc",
 )
 
 register_exception_handlers(app)
