@@ -1,9 +1,6 @@
 from types import TracebackType
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.repositories.user import UserRepository
-from app.repositories.refresh_token import RefreshTokenRepository
-from app.repositories.workspace import WorkspaceMemberRepository, WorkspaceRepository
-
+from app.repositories import UserRepository, RefreshTokenRepository, WorkspaceRepository, WorkspaceMemberRepository
 
 class UnitOfWork:
     def __init__(self, async_session: AsyncSession):
