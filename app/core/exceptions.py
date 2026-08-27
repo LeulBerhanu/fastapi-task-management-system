@@ -22,3 +22,7 @@ class BadRequestError(AppError):
 class UnauthorizedError(AppError):
     def __init__(self, message: str = "Unauthorized access", status_code: int = 401) -> None:
         super().__init__(message, status_code)
+
+class ForbiddenError(AppError):
+    def __init__(self, message: str = "Forbidden access", status_code: int = 403) -> None:
+        super().__init__(message, status_code)
