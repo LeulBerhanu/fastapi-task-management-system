@@ -1,6 +1,6 @@
 from types import TracebackType
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.repositories import UserRepository, RefreshTokenRepository, WorkspaceRepository, WorkspaceMemberRepository
+from app.repositories import UserRepository, RefreshTokenRepository, WorkspaceRepository, WorkspaceMemberRepository, TaskRepository
 
 class UnitOfWork:
     def __init__(self, async_session: AsyncSession):
@@ -9,6 +9,7 @@ class UnitOfWork:
         self.refresh_tokens = RefreshTokenRepository(async_session)
         self.workspaces = WorkspaceRepository(async_session)
         self.workspace_members = WorkspaceMemberRepository(async_session)
+        self.tasks = TaskRepository(async_session)
 
     async def commit(self):
         await self.async_session.commit()

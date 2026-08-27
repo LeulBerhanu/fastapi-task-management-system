@@ -8,10 +8,8 @@ from app.core.exceptions import NotFoundError
 from app.core.security import decode_access_token
 from app.db.session import get_async_session
 from app.models.user import User
-from app.services.user import UserService
-from app.services.workspace import WorkspaceService
+from app.services import AuthService, TaskService, UserService, WorkspaceService
 from app.db.uow import UnitOfWork
-from app.services.auth import AuthService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -26,18 +24,23 @@ UowDep = Annotated[UnitOfWork, Depends(get_uow)]
 
 
 # Service Dependencies
+def get_auth_service(uow: UowDep) -> AuthService:
+    return AuthService(uow)
+
+def get_task_service(uow: UowDep) -> TaskService:
+    return TaskService(uow)
+
 def get_user_service(uow: UowDep) -> UserService:
     return UserService(uow)
 
 def get_workspace_service(uow: UowDep) -> WorkspaceService:
     return WorkspaceService(uow)
 
-def get_auth_service(uow: UowDep) -> AuthService:
-    return AuthService(uow)
-
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+TaskServiceDep = Annotated[TaskService, Depends(get_task_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 WorkspaceServiceDep = Annotated[WorkspaceService, Depends(get_workspace_service)]
-AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], uow: UowDep) -> User:
     sub = decode_access_token(token)
