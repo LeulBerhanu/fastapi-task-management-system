@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from uuid import UUID
 from app.models.task import TaskStatus
 from app.schemas.user import UserRead
-from app.schemas.workspace import WorkspaceRead
 
 class TaskCreate(BaseModel):
     title: str
@@ -16,12 +15,12 @@ class TaskRead(BaseModel):
     title: str
     description: str | None = None
     status: TaskStatus = TaskStatus.PENDING
-    assignee_id: UUID | None = None
+    assignee: UserRead | None = None
     workspace_id: UUID
     created_at: datetime
 
 class TaskUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    status: TaskStatus | None
+    status: TaskStatus | None = None
     assignee_id: UUID | None = None

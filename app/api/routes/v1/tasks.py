@@ -1,19 +1,17 @@
-from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 from app.api.deps import TaskServiceDep
-from app.core.rbac import RequireRole
-from app.models.workspace import WorkspaceMember, WorkspaceRole
-from app.schemas.task import TaskCreate, TaskRead
+from app.core.rbac import ReadAccess, WriteAccess, OwnerAccess
+from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 
 
-collection_router = APIRouter(tags=["tasks"], responses={404: {"description": "Not found"}})
+collection_router = APIRouter(tags=["Tasks"], responses={404: {"description": "Not found"}})
 
 @collection_router.get("/", response_model=list[TaskRead])
 async def list_tasks(
     task_service: TaskServiceDep,
     workspace_id: UUID,
-    membership: Annotated[WorkspaceMember, Depends(RequireRole(WorkspaceRole.OWNER, WorkspaceRole.EDITOR, WorkspaceRole.VIEWER))],
+    membership: ReadAccess,
 ):
     tasks = await task_service.list_tasks(workspace_id)
     return tasks or []
@@ -23,29 +21,36 @@ async def create_task(
     body: TaskCreate,
     task_service: TaskServiceDep,
     workspace_id: UUID,
-    membership: Annotated[WorkspaceMember, Depends(RequireRole(WorkspaceRole.OWNER, WorkspaceRole.EDITOR))]
+    membership: WriteAccess,
 ):
     task = await task_service.create_task(body, workspace_id)
     return task
 
-
-item_router = APIRouter(prefix="/v1/tasks", tags=["tasks"], responses={404: {"description": "Not found"}})
-
-@item_router.get("/{task_id}", response_model=TaskRead)
+@collection_router.get("/{task_id}", response_model=TaskRead)
 async def get_task(
     task_id: UUID,
     task_service: TaskServiceDep,
-    membership: Annotated[WorkspaceMember, Depends(RequireRole(WorkspaceRole.OWNER, WorkspaceRole.EDITOR, WorkspaceRole.VIEWER))]
+    membership: ReadAccess,
 ):
     task = await task_service.get_task(task_id)
     return task
 
-# @item_router.put("/{task_id}", response_model=TaskRead)
-# async def update_task(
-#     task_id: UUID,
-#     body: TaskUpdate,
-#     task_service: TaskServiceDep,
-#     membership: Annotated[WorkspaceMember, Depends(RequireRole(WorkspaceRole.OWNER, WorkspaceRole.EDITOR))]
-# ):
-#     task = await task_service.update_task(task_id, body)
-#     return task
+@collection_router.patch("/{task_id}", response_model=TaskRead, status_code=status.HTTP_200_OK)
+async def update_task(
+    task_id: UUID,
+    workspace_id: UUID,
+    body: TaskUpdate,
+    task_service: TaskServiceDep,
+    membership: WriteAccess,
+):
+    task = await task_service.update_task(task_id, workspace_id, body)
+    return task
+
+@collection_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_task(
+    task_id: UUID,
+    task_service: TaskServiceDep,
+    membership: OwnerAccess,
+):
+    await task_service.delete_task(task_id)
+    return None
