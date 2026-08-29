@@ -26,6 +26,20 @@ class BaseRepository(Generic[ModelT]):
         await self.async_session.refresh(obj)
         return obj
 
+    async def update(self, id: UUID, data: dict) -> ModelT | None:
+        obj = await self.get_by_id(id)
+
+        if obj is None:
+            return None
+        
+        for key, value in data.items():
+            setattr(obj, key, value)
+            
+        self.async_session.add(obj)
+        await self.async_session.flush()
+        await self.async_session.refresh(obj)
+        return obj
+        
     async def delete(self, id: UUID) -> bool:
         obj = await self.get_by_id(id)
         if obj is None:
