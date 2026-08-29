@@ -6,7 +6,7 @@ from app.api.deps import AuthServiceDep
 from app.schemas.user import UserCreate, UserRead
 from app.core.email import send_welcome_email
 
-router = APIRouter(prefix="/v1/auth", tags=["auth"])
+router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)

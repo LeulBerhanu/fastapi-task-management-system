@@ -4,7 +4,7 @@ from app.schemas.user import UserCreate, UserRead
 from app.api.deps import UserServiceDep
 from app.core.email import send_welcome_email
 
-router = APIRouter(prefix="/v1/users", tags=["users"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/v1/users", tags=["Users"], responses={404: {"description": "Not found"}})
 
 
 @router.post(
