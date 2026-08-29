@@ -1,9 +1,12 @@
+from typing import Annotated
 from app.models.workspace import WorkspaceRole
 from app.api.deps import UowDep, CurrentUserDep
 from app.core.exceptions import ForbiddenError, NotFoundError
-
-from fastapi import Path
+from fastapi import Depends, Path
 from uuid import UUID
+
+from app.models.workspace import WorkspaceMember, WorkspaceRole
+
 
 def RequireRole(*allowed_roles: WorkspaceRole):
     async def check_role(
@@ -23,3 +26,34 @@ def RequireRole(*allowed_roles: WorkspaceRole):
         return membership
 
     return check_role
+
+
+
+ReadAccess = Annotated[
+    WorkspaceMember, 
+    Depends(
+        RequireRole(
+            WorkspaceRole.OWNER, 
+            WorkspaceRole.EDITOR, 
+            WorkspaceRole.VIEWER
+        )
+    )
+]
+
+WriteAccess = Annotated[
+    WorkspaceMember, 
+    Depends(
+        RequireRole(
+            WorkspaceRole.OWNER, WorkspaceRole.EDITOR
+        )
+    )
+]
+
+OwnerAccess = Annotated[
+    WorkspaceMember, 
+    Depends(
+        RequireRole(
+            WorkspaceRole.OWNER
+        )
+    )
+]
