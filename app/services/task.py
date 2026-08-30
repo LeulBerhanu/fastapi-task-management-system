@@ -4,14 +4,15 @@ from app.core.exceptions import BadRequestError, NotFoundError
 from app.db.uow import UnitOfWork
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.models.task import Task
+from fastapi_pagination import Page
 
 class TaskService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    async def list_tasks(self, workspace_id: UUID) -> list[Task] | []:
+    async def list_tasks(self, workspace_id: UUID) -> Page[Task]:
         tasks = await self.uow.tasks.list_by_workspace_id(workspace_id)
-        return tasks or []
+        return tasks
 
     async def create_task(self, task: TaskCreate, workspace_id: UUID) -> Task:
         workspace = await self.uow.workspaces.get_by_id(workspace_id)

@@ -3,15 +3,14 @@ from app.core.exceptions import BadRequestError, NotFoundError
 from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
 from app.schemas.workspace import WorkspaceCreate, WorkspaceMemberCreate
 from app.db.uow import UnitOfWork
+from fastapi_pagination import Page
 
 
 class WorkspaceService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    # TODO: setup pagination and sorting for list endpoints
-
-    async def list_workspaces(self) -> list[Workspace]:
+    async def list_workspaces(self) -> Page[Workspace]:
         return await self.uow.workspaces.list()
 
     async def create_workspace(self, data: WorkspaceCreate, user_id: UUID) -> Workspace:

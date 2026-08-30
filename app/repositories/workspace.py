@@ -1,3 +1,5 @@
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlmodel import apaginate
 from sqlalchemy.orm import selectinload
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.workspace import Workspace, WorkspaceMember
@@ -8,6 +10,10 @@ from sqlmodel import select
 class WorkspaceRepository(BaseRepository[Workspace]):
     def __init__(self, async_session: AsyncSession):
         super().__init__(async_session, Workspace)
+
+    async def list(self) -> Page[Workspace]:
+        query = select(Workspace).order_by(Workspace.created_at.desc())
+        return await apaginate(self.async_session, query)
 
     async def get_details(self, id: UUID) -> Workspace | None:
         query = select(Workspace).where(Workspace.id == id).options(selectinload(Workspace.members).selectinload(WorkspaceMember.user), selectinload(Workspace.tasks))

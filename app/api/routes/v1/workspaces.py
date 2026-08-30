@@ -1,13 +1,14 @@
 from uuid import UUID
-from fastapi import APIRouter, Path, status
-from app.api.deps import CurrentUserDep, WorkspaceServiceDep
+from fastapi import APIRouter, Path, status, Depends
+from fastapi_pagination import Page
+from app.api.deps import CurrentUserDep, WorkspaceServiceDep, get_current_user
 from app.core.rbac import OwnerAccess
 from app.schemas.workspace import WorkspaceCreate, WorkspaceMemberCreate, WorkspaceRead, WorkspaceWithMembersRead
 
 
-router = APIRouter(prefix="/v1/workspaces", tags=["Workspaces"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/v1/workspaces", tags=["Workspaces"], dependencies=[Depends(get_current_user)], responses={404: {"description": "Not found"}})
 
-@router.get("/", response_model=list[WorkspaceRead])
+@router.get("/", response_model=Page[WorkspaceRead])
 async def list_workspaces(
     workspace_service: WorkspaceServiceDep,
 ):
@@ -18,7 +19,7 @@ async def list_workspaces(
 @router.get("/{workspace_id}", response_model=WorkspaceWithMembersRead)
 async def get_workspace(
     workspace_service: WorkspaceServiceDep,
-    workspace_id: UUID = Path(...),
+    workspace_id: UUID = Path(...)
 ):
     workspace = await workspace_service.get_details(workspace_id)
     return workspace

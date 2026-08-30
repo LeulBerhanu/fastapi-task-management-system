@@ -3,18 +3,19 @@ from fastapi import APIRouter, status
 from app.api.deps import TaskServiceDep
 from app.core.rbac import ReadAccess, WriteAccess, OwnerAccess
 from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
+from fastapi_pagination import Page
 
 
 collection_router = APIRouter(tags=["Tasks"], responses={404: {"description": "Not found"}})
 
-@collection_router.get("/", response_model=list[TaskRead])
+@collection_router.get("/", response_model=Page[TaskRead])
 async def list_tasks(
     task_service: TaskServiceDep,
     workspace_id: UUID,
     membership: ReadAccess,
 ):
     tasks = await task_service.list_tasks(workspace_id)
-    return tasks or []
+    return tasks
 
 @collection_router.post("/", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 async def create_task(
