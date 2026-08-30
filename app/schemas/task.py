@@ -18,6 +18,7 @@ class TaskRead(BaseModel):
     assignee: UserRead | None = None
     workspace_id: UUID
     created_at: datetime
+    updated_at: datetime
 
 class TaskUpdate(BaseModel):
     title: str | None = None

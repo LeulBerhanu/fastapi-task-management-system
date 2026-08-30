@@ -49,8 +49,9 @@ async def update_task(
 @collection_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: UUID,
+    workspace_id: UUID,
     task_service: TaskServiceDep,
     membership: OwnerAccess,
 ):
-    await task_service.delete_task(task_id)
+    await task_service.delete_task(task_id, workspace_id)
     return None

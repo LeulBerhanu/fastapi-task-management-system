@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 from app.core.exceptions import BadRequestError, NotFoundError
 from app.db.uow import UnitOfWork
@@ -49,6 +50,8 @@ class TaskService:
             if assignee_exists is None:
                 raise BadRequestError("Assignee must be a member of the workspace")
         
+        data["updated_at"] = datetime.now()
+
         updated_task = await self.uow.tasks.update(task_id, data)
 
         if updated_task is None:
@@ -57,7 +60,11 @@ class TaskService:
         await self.uow.commit()
         return updated_task
 
-    async def delete_task(self, task_id: UUID) -> None:
+    async def delete_task(self, task_id: UUID, workspace_id: UUID) -> None:
+        task = await self.uow.tasks.get_by_id(task_id)
+        if task is None or task.workspace_id != workspace_id:
+            raise NotFoundError("Task not found")
+
         deleted = await self.uow.tasks.delete(task_id)
 
         if not deleted:
