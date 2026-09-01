@@ -1,13 +1,16 @@
 from enum import StrEnum
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from pydantic import EmailStr
 
 class EnvironmentOptions(StrEnum):
     DEVELOPMENT = "development"
     STAGING = "staging"
     TESTING = "testing"
     PRODUCTION = "production"
+
+class AppSettings(BaseSettings):
+    APP_NAME: str
 
 class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOptions = EnvironmentOptions.DEVELOPMENT
@@ -24,7 +27,16 @@ class AuthSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-class Settings(EnvironmentSettings, DatabaseSettings, AuthSettings):
+class EmailSettings(BaseSettings):
+    EMAIL_USERNAME: str
+    EMAIL_PASSWORD: str
+    EMAIL_FROM: EmailStr
+    EMAIL_PORT: int = 587
+    EMAIL_SERVER: str = "smtp.gmail.com"
+    EMAIL_STARTTLS: bool = True
+    EMAIL_SSL_TLS: bool = False
+
+class Settings(EnvironmentSettings, DatabaseSettings, AuthSettings, EmailSettings, AppSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     
     @property

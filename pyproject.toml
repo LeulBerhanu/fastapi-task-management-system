@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.19.1",
     "asyncpg>=0.31.0",
+    "fastapi-mail>=1.6.8",
     "fastapi-pagination>=0.15.16",
     "fastapi[standard]>=0.141.1",
     "psycopg[binary]>=3.3.4",
