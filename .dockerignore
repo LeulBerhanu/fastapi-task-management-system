@@ -1,0 +1,43 @@
+# Byte-compiled files (Python optimizations)
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Virtual environments (Do not copy your local dependencies)
+.venv/
+venv/
+env/
+ENV/
+
+# Development environments and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Local environment secrets and configuration
+.env
+.env.*
+!.env.example
+
+# Testing, coverage, and linting
+.pytest_cache/
+.htmlcov/
+htmlcov/
+.coverage
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker files (Optional: prevents re-copying the Dockerfile into itself)
+Dockerfile
+docker-compose*.yml
