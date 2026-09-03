@@ -2,7 +2,27 @@
 
 Python 3.13+, PostgreSQL, [uv](https://docs.astral.sh/uv/).
 
-## Setup
+## Run with Docker
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+`.env.example` sets `POSTGRES_HOST=postgres` (the Compose service name). Leave that as-is for Docker.
+
+Apply migrations:
+
+```bash
+docker compose exec api uv run alembic upgrade head
+```
+
+API: http://127.0.0.1:8000  
+Docs: http://127.0.0.1:8000/docs
+
+## Local setup
+
+Copy `.env.example` to `.env` and set `POSTGRES_HOST=localhost`. Postgres must be running locally, or you can keep the Compose Postgres service and point the local app at `localhost:5432`.
 
 ```bash
 uv sync
