@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.auth import RefreshTokenRequest, Token
 from app.api.deps import AuthServiceDep
 from app.schemas.user import UserCreate, UserRead
-from app.core.email import send_welcome_email
+from app.email import send_welcome_email
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 

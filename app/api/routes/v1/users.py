@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, status
 from app.schemas.user import UserCreate, UserRead
 from app.api.deps import UserServiceDep
-from app.core.email import send_welcome_email
+from app.email import send_welcome_email
 
 router = APIRouter(prefix="/v1/users", tags=["Users"], responses={404: {"description": "Not found"}})
 

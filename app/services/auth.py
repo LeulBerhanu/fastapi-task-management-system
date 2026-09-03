@@ -2,8 +2,7 @@ from datetime import datetime, timezone
 from app.core.exceptions import BadRequestError, UnauthorizedError
 from app.core.security import create_access_token, generate_refresh_token, hash_password, hash_refresh_token, verify_password
 from app.db.uow import UnitOfWork
-from app.models.refresh_token import RefreshToken
-from app.models.user import User
+from app.models import RefreshToken, User
 from app.schemas.user import UserCreate
 
 
