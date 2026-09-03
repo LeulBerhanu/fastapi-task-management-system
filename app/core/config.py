@@ -6,17 +6,24 @@ from pydantic import EmailStr
 class EnvironmentOptions(StrEnum):
     DEVELOPMENT = "development"
     STAGING = "staging"
-    TESTING = "testing"
+    TESTING = "test"
     PRODUCTION = "production"
 
 class AppSettings(BaseSettings):
     APP_NAME: str
+    API_PREFIX: str = "/api"
 
 class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOptions = EnvironmentOptions.DEVELOPMENT
 
+class PostgresSettings(BaseSettings):
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+
 class DatabaseSettings(BaseSettings):
-    DATABASE_URL: str
     DATABASE_POOL_SIZE: int = 5
     DATABASE_POOL_MAX_OVERFLOW: int = 10
     DATABASE_POOL_PRE_PING: bool = True
@@ -36,8 +43,12 @@ class EmailSettings(BaseSettings):
     EMAIL_STARTTLS: bool = True
     EMAIL_SSL_TLS: bool = False
 
-class Settings(EnvironmentSettings, DatabaseSettings, AuthSettings, EmailSettings, AppSettings):
+class Settings(EnvironmentSettings, DatabaseSettings, PostgresSettings, AuthSettings, EmailSettings, AppSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     @property
     def is_production(self) -> bool:

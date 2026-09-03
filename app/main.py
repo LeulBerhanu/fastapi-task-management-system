@@ -28,5 +28,5 @@ app = FastAPI(
 
 register_exception_handlers(app)
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix=settings.API_PREFIX)
 add_pagination(app)

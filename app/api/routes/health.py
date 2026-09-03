@@ -10,4 +10,4 @@ router = APIRouter(prefix="/health", tags=["health"], responses={404: {"descript
     response_model=dict,
 )
 async def health_check(settings: Settings = Depends(get_settings)):
-    return {"environment": settings.ENVIRONMENT}
+    return {"App Name": settings.APP_NAME, "environment": settings.ENVIRONMENT}
