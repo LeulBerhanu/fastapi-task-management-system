@@ -23,6 +23,12 @@ class PostgresSettings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
 
+class RedisSettings(BaseSettings):
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str
+    REDIS_DB: int
+
 class DatabaseSettings(BaseSettings):
     DATABASE_POOL_SIZE: int = 5
     DATABASE_POOL_MAX_OVERFLOW: int = 10
@@ -43,7 +49,16 @@ class EmailSettings(BaseSettings):
     EMAIL_STARTTLS: bool = True
     EMAIL_SSL_TLS: bool = False
 
-class Settings(EnvironmentSettings, DatabaseSettings, PostgresSettings, AuthSettings, EmailSettings, AppSettings):
+class Settings(
+    EnvironmentSettings, 
+    DatabaseSettings, 
+    PostgresSettings, 
+    AuthSettings, 
+    EmailSettings, 
+    AppSettings, 
+    RedisSettings
+    ):
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     
     @property

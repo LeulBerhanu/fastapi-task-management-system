@@ -1,3 +1,5 @@
+from fastapi import Request
+from redis.asyncio import Redis
 from collections.abc import AsyncGenerator
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import Annotated
@@ -11,11 +13,13 @@ from app.models.user import User
 from app.services import AuthService, TaskService, UserService, WorkspaceService
 from app.db.uow import UnitOfWork
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
+# Unit of Work Dependency
 async def get_uow(async_session: AsyncSessionDep) -> AsyncGenerator[UnitOfWork, None]:
     async with UnitOfWork(async_session) as uow:
         yield uow
@@ -23,12 +27,19 @@ async def get_uow(async_session: AsyncSessionDep) -> AsyncGenerator[UnitOfWork, 
 UowDep = Annotated[UnitOfWork, Depends(get_uow)]
 
 
+# Redis Dependency
+async def get_redis(request: Request) -> Redis:
+    return request.app.state.redis
+
+RedisDep = Annotated[Redis, Depends(get_redis)]
+
+
 # Service Dependencies
 def get_auth_service(uow: UowDep) -> AuthService:
     return AuthService(uow)
 
-def get_task_service(uow: UowDep) -> TaskService:
-    return TaskService(uow)
+def get_task_service(uow: UowDep, redis: RedisDep) -> TaskService:
+    return TaskService(uow, redis)
 
 def get_user_service(uow: UowDep) -> UserService:
     return UserService(uow)

@@ -1,18 +1,35 @@
 from datetime import datetime
 from uuid import UUID
+
+from redis.asyncio import Redis
 from app.core.exceptions import BadRequestError, NotFoundError
 from app.db.uow import UnitOfWork
-from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 from app.models.task import Task
-from fastapi_pagination import Page
+from fastapi_pagination import Page, Params
 
 class TaskService:
-    def __init__(self, uow: UnitOfWork):
+    def __init__(self, uow: UnitOfWork, redis: Redis):
         self.uow = uow
+        self.redis = redis
 
-    async def list_tasks(self, workspace_id: UUID) -> Page[Task]:
-        tasks = await self.uow.tasks.list_by_workspace_id(workspace_id)
-        return tasks
+    async def _invalidate_workspace_tasks_cache(self, workspace_id: UUID) -> None:
+        pattern = f"workspace:{workspace_id}:tasks:*"
+        keys = [key async for key in self.redis.scan_iter(match=pattern)]
+        if keys:
+            await self.redis.delete(*keys)
+
+    async def list_tasks(self, workspace_id: UUID, params: Params) -> Page[TaskRead]:
+        cache_key = f"workspace:{workspace_id}:tasks:page:{params.page}:size:{params.size}"
+        cached_tasks = await self.redis.get(cache_key)
+        if cached_tasks:
+            print("cache hit")
+            return Page[TaskRead].model_validate_json(cached_tasks)
+
+        page_result = await self.uow.tasks.list_by_workspace_id(workspace_id)
+        payload = Page[TaskRead].model_validate(page_result).model_dump_json()
+        await self.redis.set(cache_key, payload, ex=60)
+        return page_result
 
     async def create_task(self, task: TaskCreate, workspace_id: UUID) -> Task:
         workspace = await self.uow.workspaces.get_by_id(workspace_id)
@@ -31,6 +48,7 @@ class TaskService:
         
         task = await self.uow.tasks.create(task)
         await self.uow.commit()
+        await self._invalidate_workspace_tasks_cache(workspace_id)
         return task
 
     async def get_task(self, task_id: UUID) -> Task:
@@ -59,6 +77,7 @@ class TaskService:
             raise NotFoundError("Task not found")
             
         await self.uow.commit()
+        await self._invalidate_workspace_tasks_cache(workspace_id)
         return updated_task
 
     async def delete_task(self, task_id: UUID, workspace_id: UUID) -> None:
@@ -72,3 +91,4 @@ class TaskService:
             raise NotFoundError("Task not found")
             
         await self.uow.commit()
+        await self._invalidate_workspace_tasks_cache(workspace_id)
