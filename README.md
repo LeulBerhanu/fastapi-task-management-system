@@ -1,6 +1,6 @@
 # Task Management API
 
-Python 3.13+, PostgreSQL, [uv](https://docs.astral.sh/uv/).
+Python 3.13+, PostgreSQL, Redis, [uv](https://docs.astral.sh/uv/).
 
 ## Run with Docker
 
@@ -9,7 +9,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-`.env.example` sets `POSTGRES_HOST=postgres` (the Compose service name). Leave that as-is for Docker.
+`.env.example` sets `POSTGRES_HOST=postgres` and `REDIS_HOST=redis` (the Compose service names). Leave those as-is for Docker.
 
 Apply migrations:
 
@@ -22,7 +22,7 @@ Docs: http://127.0.0.1:8000/docs
 
 ## Local setup
 
-Copy `.env.example` to `.env` and set `POSTGRES_HOST=localhost`. Postgres must be running locally, or you can keep the Compose Postgres service and point the local app at `localhost:5432`.
+Copy `.env.example` to `.env` and set `POSTGRES_HOST=localhost` and `REDIS_HOST=localhost`. Postgres and Redis must be running locally, or you can keep the Compose services and point the local app at `localhost:5432` and `localhost:6379`.
 
 ```bash
 uv sync
