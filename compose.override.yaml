@@ -11,7 +11,6 @@ services:
       [
         "uv",
         "run",
-        "dev",
         "uvicorn",
         "app.main:app",
         "--host",
