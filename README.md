@@ -9,7 +9,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-`.env.example` sets `POSTGRES_HOST=postgres` and `REDIS_HOST=redis` (the Compose service names). Leave those as-is for Docker.
+`.env.example` sets `POSTGRES_HOST=db` and `REDIS_HOST=redis` (the Compose service names). Leave those as-is for Docker.
 
 Apply migrations:
 
@@ -45,3 +45,10 @@ uv run --env-file .env.test fastapi dev
 
 API: http://127.0.0.1:8000  
 Docs: http://127.0.0.1:8000/docs
+
+## Rate limiting
+
+Requests are limited per client IP using Redis.
+
+Default: 100 requests per 60 seconds (`RATE_LIMIT_LIMIT` / `RATE_LIMIT_WINDOW`).
+Stricter limits apply to auth and health. Set `RATE_LIMIT_ENABLED=False` to disable.
