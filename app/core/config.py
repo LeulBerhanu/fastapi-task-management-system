@@ -1,12 +1,13 @@
 from enum import StrEnum
 from functools import lru_cache
+from urllib.parse import quote
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import EmailStr
 
 class EnvironmentOptions(StrEnum):
     DEVELOPMENT = "development"
     STAGING = "staging"
-    TESTING = "test"
+    TESTING = "testing"
     PRODUCTION = "production"
 
 class AppSettings(BaseSettings):
@@ -49,6 +50,11 @@ class EmailSettings(BaseSettings):
     EMAIL_STARTTLS: bool = True
     EMAIL_SSL_TLS: bool = False
 
+class RateLimitSettings(BaseSettings):
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_WINDOW: int = 60
+    RATE_LIMIT_LIMIT: int = 100
+
 class Settings(
     EnvironmentSettings, 
     DatabaseSettings, 
@@ -56,7 +62,8 @@ class Settings(
     AuthSettings, 
     EmailSettings, 
     AppSettings, 
-    RedisSettings
+    RedisSettings,
+    RateLimitSettings
     ):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -64,6 +71,15 @@ class Settings(
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def REDIS_URL(self) -> str:
+        password = quote(self.REDIS_PASSWORD, safe="")
+        return f"redis://:{password}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
+    @property
+    def RATE_LIMIT_DEFAULT(self) -> str:
+        return f"{self.RATE_LIMIT_LIMIT} per {self.RATE_LIMIT_WINDOW} seconds"
     
     @property
     def is_production(self) -> bool:

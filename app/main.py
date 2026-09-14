@@ -3,11 +3,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 from fastapi_pagination import add_pagination
+from slowapi.middleware import SlowAPIASGIMiddleware
 
 from app.db.session import engine
 from app.api.router import api_router
 from app.api.exception_handlers import register_exception_handlers
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.core.redis import redis
 
 @asynccontextmanager
@@ -32,6 +34,8 @@ app = FastAPI(
     # docs_url=None if settings.is_production else "/docs",
     # redoc_url=None if settings.is_production else "/redoc",
 )
+app.state.limiter = limiter
+app.add_middleware(SlowAPIASGIMiddleware)
 
 register_exception_handlers(app)
 

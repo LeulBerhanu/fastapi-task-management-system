@@ -1,7 +1,8 @@
 from uuid import UUID
-from fastapi import APIRouter, BackgroundTasks, status
+from fastapi import APIRouter, BackgroundTasks, Request, status
 from app.schemas.user import UserCreate, UserRead
 from app.api.deps import UserServiceDep
+from app.core.limiter import limiter
 from app.email import send_welcome_email
 
 router = APIRouter(prefix="/v1/users", tags=["Users"], responses={404: {"description": "Not found"}})
@@ -12,7 +13,9 @@ router = APIRouter(prefix="/v1/users", tags=["Users"], responses={404: {"descrip
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("3/hour")
 async def create(
+    request: Request,
     body: UserCreate,
     background_tasks: BackgroundTasks,
     user_service: UserServiceDep

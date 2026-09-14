@@ -26,3 +26,7 @@ class UnauthorizedError(AppError):
 class ForbiddenError(AppError):
     def __init__(self, message: str = "Forbidden access", status_code: int = 403) -> None:
         super().__init__(message, status_code)
+
+class TooManyRequestsError(AppError):
+    def __init__(self, message: str = "Too many requests", status_code: int = 429) -> None:
+        super().__init__(message, status_code)
