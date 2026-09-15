@@ -1,8 +1,17 @@
-from typing import List
+import csv
+from io import BytesIO, StringIO
+from uuid import UUID
+
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
+from starlette.datastructures import Headers, UploadFile
+from sqlmodel import select
+
 from app.core.config import settings
+from app.db.session import engine
 from app.email.welcome_template import WELCOME_SUBJECT, welcome_html
+from app.models import Task, User
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 config_smtp = ConnectionConfig(
     MAIL_USERNAME=settings.EMAIL_USERNAME,
@@ -22,5 +31,63 @@ async def send_welcome_email(email: EmailStr) -> None:
         recipients=[email],
         body=welcome_html(email),
         subtype="html",
+    )
+    await fm.send_message(message)
+
+async def send_tasks_export_email(email: EmailStr, workspace_id: UUID) -> None:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        result = await session.exec(
+            select(
+                Task.id,
+                Task.title,
+                Task.description,
+                Task.status,
+                User.email,
+                Task.created_at,
+                Task.updated_at,
+            )
+            .outerjoin(User, Task.assignee_id == User.id)
+            .where(Task.workspace_id == workspace_id)
+            .order_by(Task.created_at.desc())
+        )
+        tasks = result.all()
+
+    csv_buffer = StringIO(newline="")
+    writer = csv.writer(csv_buffer)
+    writer.writerow(
+        [
+            "id",
+            "title",
+            "description",
+            "status",
+            "assignee_email",
+            "created_at",
+            "updated_at",
+        ]
+    )
+    for task in tasks:
+        writer.writerow(
+            [
+                task[0],
+                task[1],
+                task[2] or "",
+                task[3].value,
+                task[4] or "",
+                task[5].isoformat(),
+                task[6].isoformat(),
+            ]
+        )
+
+    attachment = UploadFile(
+        file=BytesIO(csv_buffer.getvalue().encode("utf-8-sig")),
+        filename=f"workspace-{workspace_id}-tasks.csv",
+        headers=Headers({"content-type": "text/csv; charset=utf-8"}),
+    )
+    message = MessageSchema(
+        subject="Your workspace tasks export",
+        recipients=[email],
+        body="Your workspace tasks CSV export is attached.",
+        subtype="plain",
+        attachments=[attachment],
     )
     await fm.send_message(message)

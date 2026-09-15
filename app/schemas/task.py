@@ -20,6 +20,12 @@ class TaskRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class TaskSummary(BaseModel):
+    total: int
+    pending: int
+    in_progress: int
+    completed: int
+
 class TaskUpdate(BaseModel):
     title: str | None = None
     description: str | None = None

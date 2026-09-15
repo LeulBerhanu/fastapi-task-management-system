@@ -1,8 +1,9 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
-from app.api.deps import TaskServiceDep
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
+from app.api.deps import CurrentUserDep, TaskServiceDep
 from app.core.rbac import ReadAccess, WriteAccess, OwnerAccess
-from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
+from app.email import send_tasks_export_email
+from app.schemas.task import TaskCreate, TaskRead, TaskSummary, TaskUpdate
 from fastapi_pagination import Page, Params
 
 
@@ -27,6 +28,28 @@ async def create_task(
 ):
     task = await task_service.create_task(body, workspace_id)
     return task
+
+@collection_router.get("/summary", response_model=TaskSummary)
+async def get_tasks_summary(
+    workspace_id: UUID,
+    task_service: TaskServiceDep,
+    membership: ReadAccess,
+):
+    return await task_service.get_summary(workspace_id)
+
+@collection_router.post("/export", status_code=status.HTTP_202_ACCEPTED)
+async def export_tasks(
+    workspace_id: UUID,
+    background_tasks: BackgroundTasks,
+    current_user: CurrentUserDep,
+    membership: ReadAccess,
+) -> Response:
+    background_tasks.add_task(
+        send_tasks_export_email,
+        current_user.email,
+        workspace_id,
+    )
+    return Response(status_code=status.HTTP_202_ACCEPTED)
 
 @collection_router.get("/{task_id}", response_model=TaskRead)
 async def get_task(

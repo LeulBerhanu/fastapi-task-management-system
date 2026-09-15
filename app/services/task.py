@@ -4,8 +4,8 @@ from uuid import UUID
 from redis.asyncio import Redis
 from app.core.exceptions import BadRequestError, NotFoundError
 from app.db.uow import UnitOfWork
-from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
-from app.models.task import Task
+from app.schemas.task import TaskCreate, TaskRead, TaskSummary, TaskUpdate
+from app.models.task import Task, TaskStatus
 from fastapi_pagination import Page, Params
 
 class TaskService:
@@ -30,6 +30,22 @@ class TaskService:
         payload = Page[TaskRead].model_validate(page_result).model_dump_json()
         await self.redis.set(cache_key, payload, ex=60)
         return page_result
+
+    async def get_summary(self, workspace_id: UUID) -> TaskSummary:
+        cache_key = f"workspace:{workspace_id}:tasks:summary"
+        cached_summary = await self.redis.get(cache_key)
+        if cached_summary:
+            return TaskSummary.model_validate_json(cached_summary)
+
+        counts = await self.uow.tasks.count_by_status(workspace_id)
+        summary = TaskSummary(
+            total=sum(counts.values()),
+            pending=counts.get(TaskStatus.PENDING, 0),
+            in_progress=counts.get(TaskStatus.IN_PROGRESS, 0),
+            completed=counts.get(TaskStatus.COMPLETED, 0),
+        )
+        await self.redis.set(cache_key, summary.model_dump_json(), ex=300)
+        return summary
 
     async def create_task(self, task: TaskCreate, workspace_id: UUID) -> Task:
         workspace = await self.uow.workspaces.get_by_id(workspace_id)
