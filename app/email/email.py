@@ -9,6 +9,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.db.session import engine
+from app.email.task_export_template import TASK_EXPORT_SUBJECT, task_export_html
 from app.email.welcome_template import WELCOME_SUBJECT, welcome_html
 from app.models import Task, User
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -38,7 +39,6 @@ async def send_tasks_export_email(email: EmailStr, workspace_id: UUID) -> None:
     async with AsyncSession(engine, expire_on_commit=False) as session:
         result = await session.exec(
             select(
-                Task.id,
                 Task.title,
                 Task.description,
                 Task.status,
@@ -56,7 +56,6 @@ async def send_tasks_export_email(email: EmailStr, workspace_id: UUID) -> None:
     writer = csv.writer(csv_buffer)
     writer.writerow(
         [
-            "id",
             "title",
             "description",
             "status",
@@ -69,12 +68,11 @@ async def send_tasks_export_email(email: EmailStr, workspace_id: UUID) -> None:
         writer.writerow(
             [
                 task[0],
-                task[1],
-                task[2] or "",
-                task[3].value,
-                task[4] or "",
+                task[1] or "",
+                task[2].value,
+                task[3] or "",
+                task[4].isoformat(),
                 task[5].isoformat(),
-                task[6].isoformat(),
             ]
         )
 
@@ -84,10 +82,10 @@ async def send_tasks_export_email(email: EmailStr, workspace_id: UUID) -> None:
         headers=Headers({"content-type": "text/csv; charset=utf-8"}),
     )
     message = MessageSchema(
-        subject="Your workspace tasks export",
+        subject=TASK_EXPORT_SUBJECT,
         recipients=[email],
-        body="Your workspace tasks CSV export is attached.",
-        subtype="plain",
+        body=task_export_html(email, workspace_id),
+        subtype="html",
         attachments=[attachment],
     )
     await fm.send_message(message)
