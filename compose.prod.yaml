@@ -1,9 +1,9 @@
 services:
   api:
     # TODO: drop env_file, remove ports and add nginx at deployment
-    env_file:
-      - .env
-      - .env.production
+    # env_file:
+    #   - .env
+    #   - .env.production
     ports:
       - "8000:8000"
     restart: always
