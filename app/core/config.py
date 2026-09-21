@@ -18,18 +18,18 @@ class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOptions = EnvironmentOptions.DEVELOPMENT
 
 class PostgresSettings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_DB: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_PORT: int | None = None
 
 class RedisSettings(BaseSettings):
     REDIS_URL: str | None = None
-    REDIS_HOST: str
-    REDIS_PORT: int
-    REDIS_PASSWORD: str
-    REDIS_DB: int
+    REDIS_HOST: str | None = None
+    REDIS_PORT: int | None = None
+    REDIS_PASSWORD: str | None = None
+    REDIS_DB: int | None = None
 
 class DatabaseSettings(BaseSettings):
     DATABASE_URL: str | None = None
