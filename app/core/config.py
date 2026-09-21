@@ -25,6 +25,7 @@ class PostgresSettings(BaseSettings):
     POSTGRES_PORT: int
 
 class RedisSettings(BaseSettings):
+    REDIS_URL: str | None = None
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_PASSWORD: str
@@ -81,6 +82,9 @@ class Settings(
 
     @property
     def redis_url(self) -> str:
+        if self.REDIS_URL:
+            return self.REDIS_URL
+        
         password = quote(self.REDIS_PASSWORD, safe="")
         return f"redis://:{password}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
