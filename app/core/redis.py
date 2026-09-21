@@ -1,9 +1,8 @@
 from redis.asyncio import Redis
 from app.core.config import settings
 
-redis = Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    password=settings.REDIS_PASSWORD,
-    db=settings.REDIS_DB,
+redis = Redis.from_url(
+    settings.redis_url,
+    encoding="utf-8",
+    decode_responses=True,
 )
