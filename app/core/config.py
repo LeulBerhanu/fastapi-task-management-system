@@ -31,6 +31,7 @@ class RedisSettings(BaseSettings):
     REDIS_DB: int
 
 class DatabaseSettings(BaseSettings):
+    DATABASE_URL: str | None = None
     DATABASE_POOL_SIZE: int = 5
     DATABASE_POOL_MAX_OVERFLOW: int = 10
     DATABASE_POOL_PRE_PING: bool = True
@@ -68,17 +69,23 @@ class Settings(
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     
+    
+    
     @property
-    def DATABASE_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    def database_url(self) -> str:
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+
+        password = quote(self.POSTGRES_PASSWORD, safe="")
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{password}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     @property
-    def REDIS_URL(self) -> str:
+    def redis_url(self) -> str:
         password = quote(self.REDIS_PASSWORD, safe="")
         return f"redis://:{password}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     @property
-    def RATE_LIMIT_DEFAULT(self) -> str:
+    def rate_limit_default(self) -> str:
         return f"{self.RATE_LIMIT_LIMIT} per {self.RATE_LIMIT_WINDOW} seconds"
     
     @property
